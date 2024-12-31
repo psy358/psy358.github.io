@@ -1,1 +1,329 @@
-<h1> 欢迎来到小宇的主页！<h1>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>烟花与倒计时和祝福</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #topText {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+        #countdown {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        #fireworkHint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        @keyframes typing {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="topText">
+    <div id="blessingChinese"></div>
+    <div id="blessingEnglish"></div>
+</div>
+<div id="countdown">
+    <div id="countdownChinese"></div>
+    <div id="countdownEnglish"></div>
+</div>
+<div id="fireworkHint">点击屏幕发射 / Click to launch</div>
+<canvas id="fireworksCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const blessingChineseText = "蒲顺宇在这里祝大家2025年新年快乐！";
+    const blessingEnglishText = "Wishing everyone a Happy New Year 2025!";
+    const chineseDiv = document.getElementById('blessingChinese');
+    const englishDiv = document.getElementById('blessingEnglish');
+    const countdownChinese = document.getElementById('countdownChinese');
+    const countdownEnglish = document.getElementById('countdownEnglish');
+    const fireworkHint = document.getElementById('fireworkHint');
+    let chineseIndex = 0;
+    let englishIndex = 0;
+
+    // 倒计时逻辑
+    function updateCountdown() {
+        const now = new Date();
+        const newYear = new Date('2025-01-01T00:00:00');
+        const diff = newYear - now;
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        countdownChinese.textContent = `距离2025年还有${days}天${hours}小时${minutes}分${seconds}秒`;
+        countdownEnglish.textContent = `Time left until 2025: ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+
+        requestAnimationFrame(updateCountdown);
+    }
+    updateCountdown();
+
+    // 问候语闪烁效果
+    function typeBlessings() {
+        if (chineseIndex < blessingChineseText.length || englishIndex < blessingEnglishText.length) {
+            if (chineseIndex < blessingChineseText.length) {
+                const chineseChar = document.createElement('span');
+                chineseChar.textContent = blessingChineseText[chineseIndex];
+                chineseChar.style.opacity = '0';
+                chineseChar.style.animation = 'typing 0.5s forwards';
+                chineseDiv.appendChild(chineseChar);
+                chineseIndex++;
+            }
+
+            if (englishIndex < blessingEnglishText.length) {
+                const englishChar = document.createElement('span');
+                englishChar.textContent = blessingEnglishText[englishIndex];
+                englishChar.style.opacity = '0';
+                englishChar.style.animation = 'typing 0.5s forwards';
+                englishDiv.appendChild(englishChar);
+                englishIndex++;
+            }
+
+            setTimeout(typeBlessings, 200);
+        }
+    }
+    typeBlessings();
+
+    // 烟花爆炸效果改进
+    const fireworks = [];
+
+    class Firework {
+        constructor(startX, startY, targetX, targetY) {
+            this.x = startX;
+            this.y = startY;
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            this.speed = 5;
+            this.exploded = false;
+            this.particles = [];
+            this.explosionSize = Math.random() * 40 + 60; // 烟花爆炸的范围
+            this.text = "Happy New Year!"; // 要显示的文本
+            this.textParticles = []; // 文本粒子
+        }
+
+        update() {
+            if (!this.exploded) {
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < this.speed) {
+                    this.explode();
+                } else {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+                }
+            } else {
+                this.particles.forEach((particle, index) => {
+                    particle.update();
+                    if (particle.alpha <= 0) {
+                        this.particles.splice(index, 1);
+                    }
+                });
+
+                this.textParticles.forEach((particle, index) => {
+                    particle.update();
+                    if (particle.alpha <= 0) {
+                        this.textParticles.splice(index, 1);
+                    }
+                });
+            }
+        }
+
+        draw() {
+            if (!this.exploded) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            } else {
+                this.particles.forEach(particle => particle.draw());
+                this.textParticles.forEach(particle => particle.draw());
+            }
+        }
+
+        explode() {
+            this.exploded = true;
+            const particleCount = Math.floor(Math.random() * 100 + 150); // 增加爆炸粒子数量
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const speed = Math.random() * 5 + 2;
+                const vx = Math.cos(angle) * speed + Math.random() * 2 - 1; // 添加随机偏移
+                const vy = Math.sin(angle) * speed + Math.random() * 2 - 1;
+                this.particles.push(new Particle(this.x, this.y, vx, vy, this.color));
+            }
+
+            // 二次爆炸延迟
+            setTimeout(() => {
+                this.secondaryExplosion();
+            }, 300);
+
+            // 显示文本 "Happy New Year!"
+            this.createTextParticles();
+        }
+
+        secondaryExplosion() {
+            // 二次爆炸粒子
+            for (let i = 0; i < 50; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2 + 2;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                this.particles.push(new Particle(this.x, this.y, vx, vy, this.color));
+            }
+        }
+
+        createTextParticles() {
+            const fontSize = 30;
+            const textWidth = ctx.measureText(this.text).width;
+            const startX = this.x - textWidth / 2;
+            const startY = this.y - fontSize;
+
+            for (let i = 0; i < this.text.length; i++) {
+                this.textParticles.push(new TextParticle(startX + i * fontSize, startY, this.text[i], this.color));
+            }
+        }
+    }
+
+    class Particle {
+        constructor(x, y, vx, vy, color, alpha = 1) {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.color = color;
+            this.alpha = alpha;
+            this.gravity = 0.1;  // 模拟重力
+            this.size = Math.random() * 3 + 1; // 不同粒子的大小
+        }
+
+        update() {
+            this.vx *= 0.98;
+            this.vy *= 0.98;
+            this.vy += this.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+            this.alpha -= 0.01;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    class TextParticle {
+        constructor(x, y, text, color) {
+            this.x = x;
+            this.y = y;
+            this.text = text;
+            this.color = color;
+            this.alpha = 1;
+            this.vx = Math.random() * 2 - 1;
+            this.vy = Math.random() * 2 - 1;
+            this.size = 30;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.alpha -= 0.02; // 增加衰减速度
+        }
+
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.font = `${this.size}px Arial`;
+            ctx.fillText(this.text, this.x, this.y);
+            ctx.restore();
+        }
+    }
+
+    function createFirework(targetX, targetY) {
+        fireworks.push(new Firework(canvas.width / 2, canvas.height, targetX, targetY));
+    }
+
+    let firstClick = true;
+
+    canvas.addEventListener('click', (event) => {
+        if (firstClick) {
+            fireworkHint.style.display = 'none';
+            firstClick = false;
+        }
+        createFirework(event.clientX, event.clientY);
+    });
+
+    function animate() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        fireworks.forEach((firework, index) => {
+            firework.update();
+            firework.draw();
+            if (firework.exploded && firework.particles.length === 0 && firework.textParticles.length === 0) {
+                fireworks.splice(index, 1);
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+</script>
+</body>
+</html>
+
