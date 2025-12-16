@@ -1,45 +1,768 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频播放测试</title>
+    <title>成都租房月支出计算器 - 宇哥出品</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 设置body全屏并移除默认边距*/
-        body, html {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f7f9fc;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px 15px 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 密码保护界面样式 */
+        .password-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: #000;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 30px 20px;
         }
-        /* 设置视频容器样式 */
-        .video-container {
-            width: 90%;
-            height: 90%;
-            max-width: 600px; /* 根据需要调整 */
-            max-height: 400px; /* 根据需要调整 */
-            position: relative;
-        }
-        video {
+
+        .password-box {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 30px 25px;
             width: 100%;
-            height: 100%;
-            object-fit: contain; /* 保持视频比例 */
+            max-width: 400px;
+        }
+
+        .lock-icon {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .password-title {
+            color: #2c3e50;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+
+        .password-subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 25px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .password-btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .password-error {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            display: none; /* 默认隐藏，输入密码后显示 */
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 25px 20px;
+            margin-bottom: 25px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .creator {
+            color: #3498db;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        h2 {
+            color: #3498db;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h2 i {
+            font-size: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            background-color: #fdfdfd;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .radio-option input {
+            display: none;
+        }
+
+        .radio-option label {
+            display: block;
+            padding: 12px 15px;
+            background-color: #f5f7fa;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .radio-option input:checked + label {
+            background-color: #e1f0fa;
+            border-color: #3498db;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .inline-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .inline-inputs > div {
+            flex: 1;
+        }
+
+        .unit {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-left: 5px;
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .result-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .total-cost {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .cost-breakdown {
+            text-align: left;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 16px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .tips {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        .toggle-options {
+            display: flex;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .toggle-option {
+            flex: 1;
+        }
+
+        .toggle-option input {
+            display: none;
+        }
+
+        .toggle-option label {
+            display: block;
+            padding: 12px;
+            text-align: center;
+            background-color: #f5f7fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-option input:checked + label {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .metro-price-info {
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .metro-price-info h3 {
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metro-price-info p {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .inline-inputs {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .radio-group {
+                flex-direction: column;
+            }
+
+            .total-cost {
+                font-size: 2.2rem;
+            }
         }
     </style>
 </head>
 <body>
-
-<div class="video-container">
-    <!-- 替换下面的 src 为你的本地视频路径 -->
-    <video controls autoplay loop>
-        <source src="video/1.mp4" type="video/mp4">
-        抱歉，您的浏览器不支持内嵌视频。
-    </video>
+<!-- 密码保护界面 -->
+<div id="passwordContainer" class="password-container">
+    <div class="password-box">
+        <div class="lock-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h2 class="password-title">成都租房月支出计算器</h2>
+        <p class="password-subtitle">宇哥出品 - 请输入访问密码</p>
+        <input type="text" id="passwordInput" class="password-input" placeholder="请输入密码（支持中文）" autocomplete="off">
+        <button id="passwordBtn" class="password-btn">
+            <i class="fas fa-key"></i> 进入计算器
+        </button>
+        <div id="passwordError" class="password-error"></div>
+    </div>
 </div>
 
+<!-- 主内容区域 -->
+<div id="mainContent" class="main-content">
+    <header>
+        <h1><i class="fas fa-home"></i> 成都租房月支出计算器</h1>
+        <div class="creator">宇哥出品</div>
+        <p class="subtitle">专为成都租房设计，精准计算每月开销</p>
+    </header>
+
+    <div class="container">
+        <!-- 房租部分 -->
+        <div class="section">
+            <h2><i class="fas fa-money-bill-wave"></i> 房租</h2>
+            <div class="input-group">
+                <label for="rent">每月房租金额 (元)</label>
+                <input type="number" id="rent" min="0" step="100" value="3000">
+            </div>
+
+            <div class="input-group">
+                <label>付款周期</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="monthly" name="paymentPeriod" value="monthly" checked>
+                        <label for="monthly">月付</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="quarterly" name="paymentPeriod" value="quarterly">
+                        <label for="quarterly">季付</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="halfYear" name="paymentPeriod" value="halfYear">
+                        <label for="halfYear">半年付</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="yearly" name="paymentPeriod" value="yearly">
+                        <label for="yearly">年付</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 物业费部分 -->
+        <div class="section">
+            <h2><i class="fas fa-building"></i> 物业费</h2>
+            <div class="toggle-options">
+                <div class="toggle-option">
+                    <input type="radio" id="bySquare" name="propertyType" value="bySquare" checked>
+                    <label for="bySquare">按面积计算</label>
+                </div>
+                <div class="toggle-option">
+                    <input type="radio" id="byMonth" name="propertyType" value="byMonth">
+                    <label for="byMonth">按月固定</label>
+                </div>
+            </div>
+
+            <div id="squareOption">
+                <div class="inline-inputs">
+                    <div class="input-group">
+                        <label for="propertyPrice">每平米价格 (元)<span class="unit">/月</span></label>
+                        <input type="number" id="propertyPrice" min="0" step="0.1" value="2.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="area">房屋面积 (m²)</label>
+                        <input type="number" id="area" min="0" step="1" value="80">
+                    </div>
+                </div>
+            </div>
+
+            <div id="monthOption" class="hidden">
+                <div class="input-group">
+                    <label for="propertyMonthly">每月物业费 (元)</label>
+                    <input type="number" id="propertyMonthly" min="0" step="10" value="200">
+                </div>
+            </div>
+        </div>
+
+        <!-- 通勤部分 -->
+        <div class="section">
+            <h2><i class="fas fa-subway"></i> 通勤费用 (成都地铁)</h2>
+            <div class="input-group">
+                <label for="subwayStations">距离工作地点地铁站数</label>
+                <input type="number" id="subwayStations" min="0" max="50" step="1" value="5">
+                <p class="tips">注：每个站按3公里计算，一天往返两次，每月22个工作日</p>
+            </div>
+
+            <div class="metro-price-info">
+                <h3><i class="fas fa-info-circle"></i> 成都地铁计费规则 (每个站按3公里计算)</h3>
+                <p><strong>起步价：3元</strong> (可乘坐4公里，约1-2个站)</p>
+                <p><strong>4元：</strong> 可乘坐12公里，约4个站</p>
+                <p><strong>5元：</strong> 可乘坐18公里，约6个站</p>
+                <p><strong>6元：</strong> 可乘坐24公里，约8个站</p>
+                <p><strong>7元：</strong> 可乘坐32公里，约10-11个站</p>
+                <p>根据您的站数，系统会自动计算单程票价</p>
+            </div>
+
+            <div class="input-group">
+                <label for="distance">最近地铁站距离是否大于500米？</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="distanceYes" name="distance" value="yes">
+                        <label for="distanceYes">是，需要单车接驳</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="distanceNo" name="distance" value="no" checked>
+                        <label for="distanceNo">否，步行可达</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 水电燃气部分 -->
+        <div class="section">
+            <h2><i class="fas fa-tint"></i> 水电燃气费 (单价)</h2>
+            <div class="inline-inputs">
+                <div class="input-group">
+                    <label for="waterPrice">水费 (元/吨)</label>
+                    <input type="number" id="waterPrice" min="0" step="0.1" value="4.5">
+                </div>
+                <div class="input-group">
+                    <label for="electricityPrice">电费 (元/度)</label>
+                    <input type="number" id="electricityPrice" min="0" step="0.1" value="0.6">
+                </div>
+                <div class="input-group">
+                    <label for="gasPrice">燃气费 (元/立方米)</label>
+                    <input type="number" id="gasPrice" min="0" step="0.1" value="3.2">
+                </div>
+            </div>
+            <p class="tips">注：实际费用将根据每月用量计算，此处仅为单价参考</p>
+        </div>
+
+        <button id="calculateBtn" class="calculate-btn">
+            <i class="fas fa-calculator"></i> 计算每月总支出
+        </button>
+    </div>
+
+    <!-- 结果部分 -->
+    <div class="result-section">
+        <h2 class="result-title"><i class="fas fa-chart-pie"></i> 每月支出汇总</h2>
+        <div class="total-cost">¥ 0</div>
+
+        <div class="cost-breakdown">
+            <div class="breakdown-item">
+                <span><i class="fas fa-home"></i> 房租费用：</span>
+                <span id="rentCost">¥ 0</span>
+            </div>
+            <div class="breakdown-item">
+                <span><i class="fas fa-building"></i> 物业费用：</span>
+                <span id="propertyCost">¥ 0</span>
+            </div>
+            <div class="breakdown-item">
+                <span><i class="fas fa-subway"></i> 地铁费用：</span>
+                <span id="commuteCost">¥ 0</span>
+            </div>
+            <div class="breakdown-item">
+                <span><i class="fas fa-bicycle"></i> 单车费用：</span>
+                <span id="bikeCost">¥ 0</span>
+            </div>
+            <div class="breakdown-item">
+                <span><i class="fas fa-tint"></i> 水电燃气费：</span>
+                <span id="utilityCost">¥ 0</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>成都租房月支出计算器 | 宇哥出品 | 精准计算，租房无忧</p>
+    </footer>
+</div>
+
+<script>
+    // ========== 密码验证部分 ==========
+    // 设置你的密码（可以是中文）
+    const correctPassword = "宇哥最帅"; // 你可以修改这里设置你的密码
+
+    // 获取DOM元素
+    const passwordContainer = document.getElementById('passwordContainer');
+    const mainContent = document.getElementById('mainContent');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordBtn = document.getElementById('passwordBtn');
+    const passwordError = document.getElementById('passwordError');
+
+    // 密码验证函数
+    function verifyPassword() {
+        const enteredPassword = passwordInput.value.trim();
+
+        if (enteredPassword === correctPassword) {
+            // 密码正确，显示主内容
+            passwordContainer.style.display = 'none';
+            mainContent.style.display = 'block';
+            // 初始化计算器
+            initializeCalculator();
+        } else {
+            // 密码错误
+            passwordError.textContent = '密码错误，请重新输入';
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    }
+
+    // 添加事件监听器
+    passwordBtn.addEventListener('click', verifyPassword);
+
+    // 按回车键也可以验证密码
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verifyPassword();
+        }
+    });
+
+    // 初始化计算器
+    function initializeCalculator() {
+        // ========== 计算器功能部分 ==========
+
+        // 切换物业费计算方式
+        document.querySelectorAll('input[name="propertyType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const squareOption = document.getElementById('squareOption');
+                const monthOption = document.getElementById('monthOption');
+
+                if (this.value === 'bySquare') {
+                    squareOption.classList.remove('hidden');
+                    monthOption.classList.add('hidden');
+                } else {
+                    squareOption.classList.add('hidden');
+                    monthOption.classList.remove('hidden');
+                }
+            });
+        });
+
+        // 计算每月总支出
+        document.getElementById('calculateBtn').addEventListener('click', calculateTotal);
+
+        // 初始计算一次
+        calculateTotal();
+
+        // 输入变化时自动计算
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculateTotal);
+        });
+
+        // 单选按钮变化时自动计算
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', calculateTotal);
+        });
+
+        // 成都地铁计价函数（每个站3公里）
+        function calculateSubwayFee(stations) {
+            // 每个站按3公里计算
+            const distance = stations * 3;
+
+            // 成都地铁计价规则
+            if (distance <= 4) return 3; // 起步价3元
+            if (distance <= 12) return 4; // 4个站约12公里，4元
+            if (distance <= 18) return 5; // 6个站约18公里，5元
+            if (distance <= 24) return 6; // 8个站约24公里，6元
+            if (distance <= 32) return 7; // 10-11个站约32公里，7元
+            if (distance <= 40) return 8; // 13-14个站约40公里，8元
+            if (distance <= 50) return 9; // 16-17个站约50公里，9元
+            if (distance <= 70) return 10; // 23个站约70公里，10元
+
+            // 超过70公里，每增加20公里加1元
+            return 10 + Math.ceil((distance - 70) / 20);
+        }
+
+        function calculateTotal() {
+            // 获取房租相关值
+            const rent = parseFloat(document.getElementById('rent').value) || 0;
+            const paymentPeriod = document.querySelector('input[name="paymentPeriod"]:checked').value;
+
+            // 计算月均房租（根据付款周期）
+            let monthlyRent = rent;
+            switch(paymentPeriod) {
+                case 'quarterly':
+                    monthlyRent = rent / 3;
+                    break;
+                case 'halfYear':
+                    monthlyRent = rent / 6;
+                    break;
+                case 'yearly':
+                    monthlyRent = rent / 12;
+                    break;
+                // 月付已经是月均
+            }
+
+            // 获取物业费相关值
+            let monthlyProperty = 0;
+            const propertyType = document.querySelector('input[name="propertyType"]:checked').value;
+
+            if (propertyType === 'bySquare') {
+                const propertyPrice = parseFloat(document.getElementById('propertyPrice').value) || 0;
+                const area = parseFloat(document.getElementById('area').value) || 0;
+                monthlyProperty = propertyPrice * area;
+            } else {
+                monthlyProperty = parseFloat(document.getElementById('propertyMonthly').value) || 0;
+            }
+
+            // 获取通勤相关值
+            const subwayStations = parseInt(document.getElementById('subwayStations').value) || 0;
+            const distanceOver500m = document.querySelector('input[name="distance"]:checked').value === 'yes';
+
+            // 计算通勤费用（成都地铁计价规则，每个站3公里）
+            let dailyCommuteCost = 0;
+            if (subwayStations > 0) {
+                const oneWayFee = calculateSubwayFee(subwayStations);
+                dailyCommuteCost = oneWayFee * 2; // 往返
+            }
+
+            const monthlyCommuteCost = dailyCommuteCost * 22;
+
+            // 计算单车费用（如果地铁站距离大于500米）
+            const monthlyBikeCost = distanceOver500m ? 15 : 0;
+
+            // 获取水电燃气单价（此处我们假设平均每月用量来计算）
+            const waterPrice = parseFloat(document.getElementById('waterPrice').value) || 0;
+            const electricityPrice = parseFloat(document.getElementById('electricityPrice').value) || 0;
+            const gasPrice = parseFloat(document.getElementById('gasPrice').value) || 0;
+
+            // 假设每月平均用量（可根据实际情况调整）
+            const avgWaterUsage = 5; // 吨
+            const avgElectricityUsage = 150; // 度
+            const avgGasUsage = 20; // 立方米
+
+            const monthlyUtilityCost = (waterPrice * avgWaterUsage) +
+                (electricityPrice * avgElectricityUsage) +
+                (gasPrice * avgGasUsage);
+
+            // 计算总支出
+            const totalMonthlyCost = monthlyRent + monthlyProperty + monthlyCommuteCost +
+                monthlyBikeCost + monthlyUtilityCost;
+
+            // 更新结果显示
+            document.querySelector('.total-cost').textContent = `¥ ${totalMonthlyCost.toFixed(2)}`;
+            document.getElementById('rentCost').textContent = `¥ ${monthlyRent.toFixed(2)}`;
+            document.getElementById('propertyCost').textContent = `¥ ${monthlyProperty.toFixed(2)}`;
+            document.getElementById('commuteCost').textContent = `¥ ${monthlyCommuteCost.toFixed(2)}`;
+            document.getElementById('bikeCost').textContent = `¥ ${monthlyBikeCost.toFixed(2)}`;
+            document.getElementById('utilityCost').textContent = `¥ ${monthlyUtilityCost.toFixed(2)}`;
+        }
+    }
+</script>
 </body>
 </html>
