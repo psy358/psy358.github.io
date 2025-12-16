@@ -230,6 +230,15 @@
             font-weight: 600;
         }
 
+        .season-radio .radio-option {
+            min-width: 100px;
+        }
+
+        .season-icon {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+
         .inline-inputs {
             display: flex;
             gap: 10px;
@@ -392,6 +401,39 @@
             margin-bottom: 5px;
         }
 
+        .season-info {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .season-info h3 {
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .season-info p {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .utility-note {
+            background-color: #fff8e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #8a6d3b;
+            border-left: 3px solid #ffc107;
+        }
+
         @media (max-width: 480px) {
             .inline-inputs {
                 flex-direction: column;
@@ -400,6 +442,10 @@
 
             .radio-group {
                 flex-direction: column;
+            }
+
+            .season-radio .radio-option {
+                min-width: 80px;
             }
 
             .total-cost {
@@ -534,6 +580,40 @@
             </div>
         </div>
 
+        <!-- 季节选择部分 -->
+        <div class="section">
+            <h2><i class="fas fa-sun"></i> 季节选择</h2>
+            <div class="input-group">
+                <label>选择当前季节</label>
+                <div class="radio-group season-radio">
+                    <div class="radio-option">
+                        <input type="radio" id="spring" name="season" value="spring" checked>
+                        <label for="spring"><i class="fas fa-seedling season-icon"></i> 春季</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="summer" name="season" value="summer">
+                        <label for="summer"><i class="fas fa-sun season-icon"></i> 夏季</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="autumn" name="season" value="autumn">
+                        <label for="autumn"><i class="fas fa-leaf season-icon"></i> 秋季</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="winter" name="season" value="winter">
+                        <label for="winter"><i class="fas fa-snowflake season-icon"></i> 冬季</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="season-info">
+                <h3><i class="fas fa-info-circle"></i> 各季节水电燃气用量参考</h3>
+                <p><strong>春季/秋季：</strong> 用电量较低，空调使用少</p>
+                <p><strong>夏季：</strong> 空调用电量大，用水量增加（洗澡频繁）</p>
+                <p><strong>冬季：</strong> 取暖用电量大，燃气用量增加（洗澡水更热）</p>
+                <p>夏冬季节的电费通常是春秋季的2倍以上</p>
+            </div>
+        </div>
+
         <!-- 水电燃气部分 -->
         <div class="section">
             <h2><i class="fas fa-tint"></i> 水电燃气费 (单价)</h2>
@@ -551,7 +631,13 @@
                     <input type="number" id="gasPrice" min="0" step="0.1" value="3.2">
                 </div>
             </div>
-            <p class="tips">注：实际费用将根据每月用量计算，此处仅为单价参考</p>
+
+            <div class="utility-note">
+                <strong>注：</strong> 水电燃气费用为预估计算，根据您选择的季节和以下默认用量：
+                <br>• 水：5-10吨/月（夏季较多）
+                <br>• 电：100-300度/月（夏冬季空调/取暖用电多）
+                <br>• 燃气：15-30立方米/月（冬季较多）
+            </div>
         </div>
 
         <button id="calculateBtn" class="calculate-btn">
@@ -584,6 +670,7 @@
             <div class="breakdown-item">
                 <span><i class="fas fa-tint"></i> 水电燃气费：</span>
                 <span id="utilityCost">¥ 0</span>
+                <span id="seasonIndicator" style="font-size: 0.8rem; opacity: 0.9;"></span>
             </div>
         </div>
     </div>
@@ -688,6 +775,54 @@
             return 10 + Math.ceil((distance - 70) / 20);
         }
 
+        // 根据季节获取水电燃气用量
+        function getSeasonalUsage(season) {
+            // 默认用量（春/秋季）
+            let waterUsage = 5; // 吨
+            let electricityUsage = 120; // 度
+            let gasUsage = 20; // 立方米
+
+            switch(season) {
+                case 'spring':
+                    // 春季：中等用量
+                    waterUsage = 6;
+                    electricityUsage = 100;
+                    gasUsage = 18;
+                    break;
+                case 'summer':
+                    // 夏季：用水多，用电最多（空调）
+                    waterUsage = 10;
+                    electricityUsage = 300; // 夏冬是春秋的2倍以上
+                    gasUsage = 15;
+                    break;
+                case 'autumn':
+                    // 秋季：中等用量
+                    waterUsage = 6;
+                    electricityUsage = 100;
+                    gasUsage = 18;
+                    break;
+                case 'winter':
+                    // 冬季：用电多（取暖），燃气多
+                    waterUsage = 8;
+                    electricityUsage = 280; // 夏冬是春秋的2倍以上
+                    gasUsage = 30;
+                    break;
+            }
+
+            return { waterUsage, electricityUsage, gasUsage };
+        }
+
+        // 获取季节名称
+        function getSeasonName(season) {
+            switch(season) {
+                case 'spring': return '春季';
+                case 'summer': return '夏季';
+                case 'autumn': return '秋季';
+                case 'winter': return '冬季';
+                default: return '';
+            }
+        }
+
         function calculateTotal() {
             // 获取房租相关值
             const rent = parseFloat(document.getElementById('rent').value) || 0;
@@ -736,19 +871,22 @@
             // 计算单车费用（如果地铁站距离大于500米）
             const monthlyBikeCost = distanceOver500m ? 15 : 0;
 
-            // 获取水电燃气单价（此处我们假设平均每月用量来计算）
+            // 获取水电燃气单价
             const waterPrice = parseFloat(document.getElementById('waterPrice').value) || 0;
             const electricityPrice = parseFloat(document.getElementById('electricityPrice').value) || 0;
             const gasPrice = parseFloat(document.getElementById('gasPrice').value) || 0;
 
-            // 假设每月平均用量（可根据实际情况调整）
-            const avgWaterUsage = 5; // 吨
-            const avgElectricityUsage = 150; // 度
-            const avgGasUsage = 20; // 立方米
+            // 获取季节
+            const season = document.querySelector('input[name="season"]:checked').value;
+            const seasonName = getSeasonName(season);
 
-            const monthlyUtilityCost = (waterPrice * avgWaterUsage) +
-                (electricityPrice * avgElectricityUsage) +
-                (gasPrice * avgGasUsage);
+            // 根据季节获取用量
+            const { waterUsage, electricityUsage, gasUsage } = getSeasonalUsage(season);
+
+            // 计算水电燃气费用
+            const monthlyUtilityCost = (waterPrice * waterUsage) +
+                (electricityPrice * electricityUsage) +
+                (gasPrice * gasUsage);
 
             // 计算总支出
             const totalMonthlyCost = monthlyRent + monthlyProperty + monthlyCommuteCost +
@@ -761,6 +899,11 @@
             document.getElementById('commuteCost').textContent = `¥ ${monthlyCommuteCost.toFixed(2)}`;
             document.getElementById('bikeCost').textContent = `¥ ${monthlyBikeCost.toFixed(2)}`;
             document.getElementById('utilityCost').textContent = `¥ ${monthlyUtilityCost.toFixed(2)}`;
+
+            // 显示季节信息
+            const seasonIndicator = document.getElementById('seasonIndicator');
+            seasonIndicator.textContent = `(${seasonName}用量)`;
+            seasonIndicator.title = `水:${waterUsage}吨, 电:${electricityUsage}度, 燃气:${gasUsage}立方米`;
         }
     }
 </script>
