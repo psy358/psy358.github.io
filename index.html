@@ -329,6 +329,33 @@
             transform: translateY(0);
         }
 
+        .save-image-btn {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 16px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .save-image-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .save-image-btn:active {
+            transform: translateY(0);
+        }
+
         .tips {
             font-size: 0.85rem;
             color: #7f8c8d;
@@ -480,6 +507,15 @@
     </header>
 
     <div class="container">
+        <!-- 小区名称输入 -->
+        <div class="section">
+            <h2><i class="fas fa-map-marker-alt"></i> 房源信息</h2>
+            <div class="input-group">
+                <label for="estateName">小区名称/备注 (选填)</label>
+                <input type="text" id="estateName" placeholder="例如：中海城南一号 15栋">
+            </div>
+        </div>
+
         <!-- 房租部分 -->
         <div class="section">
             <h2><i class="fas fa-money-bill-wave"></i> 房租</h2>
@@ -640,8 +676,14 @@
             </div>
         </div>
 
+        <!-- 计算按钮 -->
         <button id="calculateBtn" class="calculate-btn">
             <i class="fas fa-calculator"></i> 计算每月总支出
+        </button>
+        
+        <!-- 保存图片按钮 -->
+        <button id="saveImageBtn" class="save-image-btn">
+            <i class="fas fa-camera"></i> 保存结果截图
         </button>
     </div>
 
@@ -677,6 +719,7 @@
 
     <footer>
         <p>成都租房月支出计算器 | 宇哥出品 | 精准计算，租房无忧</p>
+        <p style="font-size: 0.8rem; margin-top: 5px;">建议：计算后点击"保存结果截图"，将图片保存到手机相册中对比</p>
     </footer>
 </div>
 
@@ -754,6 +797,26 @@
         // 单选按钮变化时自动计算
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', calculateTotal);
+        });
+
+        // ========== 保存图片功能 ==========
+        // 动态引入html2canvas库
+        function loadHtml2Canvas(callback) {
+            if (window.html2canvas) {
+                callback();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
+
+        // 为保存图片按钮添加事件
+        document.getElementById('saveImageBtn').addEventListener('click', function() {
+            loadHtml2Canvas(function() {
+                captureAndSaveImage();
+            });
         });
 
         // 成都地铁计价函数（每个站3公里）
@@ -904,6 +967,49 @@
             const seasonIndicator = document.getElementById('seasonIndicator');
             seasonIndicator.textContent = `(${seasonName}用量)`;
             seasonIndicator.title = `水:${waterUsage}吨, 电:${electricityUsage}度, 燃气:${gasUsage}立方米`;
+
+            // 显示保存图片按钮
+            document.getElementById('saveImageBtn').style.display = 'flex';
+        }
+
+        // 保存图片功能
+        function captureAndSaveImage() {
+            const resultSection = document.querySelector('.result-section');
+            const estateName = document.getElementById('estateName').value;
+            const fileName = estateName ? `租房估算_${estateName}.png` : `租房估算_${new Date().toLocaleDateString()}.png`;
+
+            // 显示截图提示
+            const originalText = document.getElementById('saveImageBtn').innerHTML;
+            document.getElementById('saveImageBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在生成图片...';
+            document.getElementById('saveImageBtn').disabled = true;
+
+            // 设置截图选项，提高质量
+            html2canvas(resultSection, {
+                scale: 2, // 提高分辨率
+                useCORS: true,
+                backgroundColor: null, // 保持透明背景
+                logging: false
+            }).then(canvas => {
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // 恢复按钮状态
+                document.getElementById('saveImageBtn').innerHTML = originalText;
+                document.getElementById('saveImageBtn').disabled = false;
+                
+                // 显示成功提示
+                alert(`✅ 截图已保存为：${fileName}\n\n建议：\n1. 保存到手机相册\n2. 多套房源可以截图后对比\n3. 方便微信分享给家人朋友`);
+            }).catch(error => {
+                console.error('截图失败:', error);
+                alert('❌ 截图生成失败，请重试或换个浏览器试试');
+                document.getElementById('saveImageBtn').innerHTML = originalText;
+                document.getElementById('saveImageBtn').disabled = false;
+            });
         }
     }
 </script>
